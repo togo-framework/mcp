@@ -1,4 +1,4 @@
-module github.com/togo-framework/togo-mcp
+module github.com/togo-framework/mcp
 
 go 1.26
 

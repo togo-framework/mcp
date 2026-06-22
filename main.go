@@ -1,4 +1,4 @@
-// Command togo-mcp is the Model Context Protocol server for the togo framework.
+// Command mcp is the Model Context Protocol server for the togo framework.
 // It exposes togo's generators and project introspection as MCP tools so AI
 // agents (Claude Code, Cursor, …) can drive a togo project end-to-end.
 //
@@ -68,7 +68,7 @@ func main() {
 	})
 
 	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
-		os.Stderr.WriteString("togo-mcp: " + err.Error() + "\n")
+		os.Stderr.WriteString("mcp: " + err.Error() + "\n")
 		os.Exit(1)
 	}
 }
