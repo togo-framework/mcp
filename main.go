@@ -31,24 +31,14 @@ type makeResourceArgs struct {
 func main() {
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    "togo",
-		Version: "0.1.0",
+		Version: "0.2.0",
 	}, nil)
 
-	mcp.AddTool(server, &mcp.Tool{
-		Name:        "make_resource",
-		Description: "Scaffold a full resource (model, sqlc, Atlas, GraphQL, REST, seeder, Next.js page) in the current togo project.",
-	}, func(ctx context.Context, _ *mcp.CallToolRequest, in makeResourceArgs) (*mcp.CallToolResult, output, error) {
-		args := append([]string{"make:resource", in.Name}, in.Fields...)
-		return run(args...)
-	})
+	// Role scopes the toolset: "user" gets read-only introspection; "admin"
+	// (default) also gets mutating generators. Set via TOGO_MCP_ROLE.
+	admin := os.Getenv("TOGO_MCP_ROLE") != "user"
 
-	mcp.AddTool(server, &mcp.Tool{
-		Name:        "generate",
-		Description: "Run the togo codegen pipeline (sqlc → gqlgen → atlas diff → OpenAPI export).",
-	}, func(ctx context.Context, _ *mcp.CallToolRequest, _ noArgs) (*mcp.CallToolResult, output, error) {
-		return run("generate")
-	})
-
+	// Read-only tools (both roles).
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "list_resources",
 		Description: "List the resources defined in the project's togo.resources.yaml manifest.",
@@ -60,12 +50,29 @@ func main() {
 		return text(string(data))
 	})
 
-	mcp.AddTool(server, &mcp.Tool{
-		Name:        "migrate",
-		Description: "Apply pending database migrations (Atlas).",
-	}, func(ctx context.Context, _ *mcp.CallToolRequest, _ noArgs) (*mcp.CallToolResult, output, error) {
-		return run("migrate")
-	})
+	if admin {
+		mcp.AddTool(server, &mcp.Tool{
+			Name:        "make_resource",
+			Description: "Scaffold a full resource (model, sqlc, Atlas, GraphQL, REST, seeder, Next.js page) in the current togo project.",
+		}, func(ctx context.Context, _ *mcp.CallToolRequest, in makeResourceArgs) (*mcp.CallToolResult, output, error) {
+			args := append([]string{"make:resource", in.Name}, in.Fields...)
+			return run(args...)
+		})
+
+		mcp.AddTool(server, &mcp.Tool{
+			Name:        "generate",
+			Description: "Run the togo codegen pipeline (sqlc → gqlgen → atlas diff → OpenAPI export).",
+		}, func(ctx context.Context, _ *mcp.CallToolRequest, _ noArgs) (*mcp.CallToolResult, output, error) {
+			return run("generate")
+		})
+
+		mcp.AddTool(server, &mcp.Tool{
+			Name:        "migrate",
+			Description: "Apply pending database migrations (Atlas).",
+		}, func(ctx context.Context, _ *mcp.CallToolRequest, _ noArgs) (*mcp.CallToolResult, output, error) {
+			return run("migrate")
+		})
+	}
 
 	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
 		os.Stderr.WriteString("mcp: " + err.Error() + "\n")
