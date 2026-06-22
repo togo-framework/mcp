@@ -10,6 +10,8 @@ package togomcp
 
 import (
 	"context"
+	"net/http"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
@@ -41,9 +43,16 @@ func Default(role string) *Server {
 	return s
 }
 
-// Run serves over stdio.
+// Run serves over stdio (default transport for local agents).
 func (s *Server) Run() error {
 	return s.MCP.Run(context.Background(), &mcp.StdioTransport{})
+}
+
+// RunHTTP serves over Streamable HTTP at addr (e.g. ":8089") for remote agents.
+func (s *Server) RunHTTP(addr string) error {
+	handler := mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server { return s.MCP }, nil)
+	srv := &http.Server{Addr: addr, Handler: handler, ReadHeaderTimeout: 10 * time.Second}
+	return srv.ListenAndServe()
 }
 
 // AddTool registers a typed tool (apps use this to extend the server).
