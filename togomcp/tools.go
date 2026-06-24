@@ -83,6 +83,8 @@ func (s *Server) registerTools() {
 	AddTool(s, "migrate", "Apply pending database migrations.", func(_ context.Context, _ NoArgs) (string, error) {
 		return runTogo("migrate"), nil
 	})
+	// Marketplace discovery/install tools (plugins, agents, skills).
+	s.registerMarketplaceTools()
 }
 
 func runTogo(args ...string) string {
