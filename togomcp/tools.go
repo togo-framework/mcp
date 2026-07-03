@@ -60,6 +60,10 @@ func (s *Server) registerTools() {
 		return listRoutes(), nil
 	})
 
+	AddTool(s, "provider_list", "List capability backends (impl/exec/compute/data/queue/…) and the selected one for each.", func(_ context.Context, _ NoArgs) (string, error) {
+		return runTogo("provider:list"), nil
+	})
+
 	if !s.Admin {
 		return
 	}
@@ -82,6 +86,24 @@ func (s *Server) registerTools() {
 	})
 	AddTool(s, "migrate", "Apply pending database migrations.", func(_ context.Context, _ NoArgs) (string, error) {
 		return runTogo("migrate"), nil
+	})
+	AddTool(s, "provider_use", "Select the active backend for a capability (e.g. exec=coder, impl=omnigent).", func(_ context.Context, in struct {
+		Capability string `json:"capability"`
+		Backend    string `json:"backend"`
+	}) (string, error) {
+		if in.Capability == "" || in.Backend == "" {
+			return "", fmt.Errorf("capability and backend are required")
+		}
+		return runTogo("provider:use", in.Capability, in.Backend), nil
+	})
+	AddTool(s, "config_set", "Set a project config value in .env (e.g. CODER_URL).", func(_ context.Context, in struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	}) (string, error) {
+		if in.Key == "" {
+			return "", fmt.Errorf("key is required")
+		}
+		return runTogo("config:set", in.Key, in.Value), nil
 	})
 	// Marketplace discovery/install tools (plugins, agents, skills).
 	s.registerMarketplaceTools()
