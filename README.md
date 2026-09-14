@@ -1,6 +1,6 @@
 <!-- togo-brand -->
 <p align="center">
-  <img src=".github/assets/togo-mark.svg" width="96" alt="togo" />
+  <picture><source media="(prefers-color-scheme: dark)" srcset=".github/assets/togo-mark-dark.svg" /><img src=".github/assets/togo-mark.svg" alt="ToGO" width="96" /></picture>
 </p>
 <h1 align="center">togo-mcp</h1>
 <p align="center"><sub>part of the <a href="https://github.com/togo-framework">togo-framework</a> — the full-stack Go + React framework</sub></p>
