@@ -243,13 +243,18 @@ func dbSchema() (string, error) {
 }
 
 func listRoutes() string {
-	manifest := readFileOr("togo.resources.yaml", "")
+	return routesFor(readFileOr("togo.resources.yaml", ""))
+}
+
+// routesFor lists the CRUD routes make:resource registers for every table in
+// the manifest: list, create, get, update (PUT) and delete.
+func routesFor(manifest string) string {
 	var sb strings.Builder
 	for _, ln := range strings.Split(manifest, "\n") {
 		ln = strings.TrimSpace(ln)
 		if strings.HasPrefix(ln, "table:") {
 			table := strings.TrimSpace(strings.TrimPrefix(ln, "table:"))
-			fmt.Fprintf(&sb, "GET    /api/%s\nPOST   /api/%s\nGET    /api/%s/{id}\nDELETE /api/%s/{id}\n", table, table, table, table)
+			fmt.Fprintf(&sb, "GET    /api/%[1]s\nPOST   /api/%[1]s\nGET    /api/%[1]s/{id}\nPUT    /api/%[1]s/{id}\nDELETE /api/%[1]s/{id}\n", table)
 		}
 	}
 	if sb.Len() == 0 {
